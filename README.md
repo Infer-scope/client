@@ -1,2 +1,2 @@
-# client
-Open-source clients for Inferscope API
+# inferscope-client
+Library for quality analysis
