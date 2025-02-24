@@ -34,9 +34,7 @@ class Run:
         self.__artifact_pack_helper: Union[StoredArtifactHelper, None] = None
 
     def commit(self):
-        """Commit the run and its artifacts to storage: if it's new run, create it, otherwise update it.
-
-        """
+        """Commit the run and its artifacts to storage: if it's new run, create it, otherwise update it."""
         if self.__artifact_pack_helper is not None:
             self._model.artifact_pack_id = self.__artifact_pack_helper.pack_uid
         if self._model.uid is None:
@@ -55,9 +53,14 @@ class Run:
             self.__artifact_pack_helper = StoredArtifactHelper(client=self.client)
         return self.__artifact_pack_helper
 
-    def add_artifact(self, path, local_path=None, blob=None, uri=None,
-                     data_description: Union[DataDescription, None] = None) -> Union[
-        StoredArtifact, ExternalLinkArtifact]:
+    def add_artifact(
+        self,
+        path,
+        local_path=None,
+        blob=None,
+        uri=None,
+        data_description: Union[DataDescription, None] = None,
+    ) -> Union[StoredArtifact, ExternalLinkArtifact]:
         """Add an artifact to the run, either by uploading content or linking to external URI.
 
         Args:
@@ -74,10 +77,16 @@ class Run:
             AssertionError: If multiple source parameters (local_path, blob, uri) are provided.
         """
         if uri is None:
-            return self._aph.upload_artifact(path=path, local_path=local_path, blob=blob,
-                                             data_description=data_description)
+            return self._aph.upload_artifact(
+                path=path,
+                local_path=local_path,
+                blob=blob,
+                data_description=data_description,
+            )
         else:
-            assert local_path is None and blob is None, "Only one of local_path, blob or uri can be set"
+            assert (
+                local_path is None and blob is None
+            ), "Only one of local_path, blob or uri can be set"
             if not self._model.artifacts:
                 self._model.artifacts = []
             ela = ExternalLinkArtifact(
@@ -92,19 +101,18 @@ class Run:
         value: Union[float, int, list[float], list[int]],
         slice: Union[str, None] = None,
         std: Union[float, None] = None,
-        best_value: Union[MetricBestValue, None] = None
+        best_value: Union[MetricBestValue, None] = None,
     ):
         self._model.metrics.append(
-            Metric(
-                name=name,
-                slice=slice,
-                value=value,
-                std=std,
-                best_value=best_value
-            )
+            Metric(name=name, slice=slice, value=value, std=std, best_value=best_value)
         )
 
-    def log_image(self, name: str, blob: Union[bytes, None] = None, local_path: Union[str, None] = None) -> str:
+    def log_image(
+        self,
+        name: str,
+        blob: Union[bytes, None] = None,
+        local_path: Union[str, None] = None,
+    ) -> str:
         """Log an image artifact to the run.
 
         Args:
@@ -121,10 +129,16 @@ class Run:
             local_path=local_path,
             data_description=DataDescription(
                 data_format=DataFormat(data_format=DataFormatType.Binary),
-                semantic=SemanticType.Image)
+                semantic=SemanticType.Image,
+            ),
         ).uri
 
-    def log_video(self, name: str, blob: Union[bytes, None] = None, local_path: Union[str, None] = None) -> str:
+    def log_video(
+        self,
+        name: str,
+        blob: Union[bytes, None] = None,
+        local_path: Union[str, None] = None,
+    ) -> str:
         """Log video artifact to the run.
 
         Args:
@@ -141,7 +155,8 @@ class Run:
             local_path=local_path,
             data_description=DataDescription(
                 data_format=DataFormat(data_format=DataFormatType.Binary),
-                semantic=SemanticType.Video)
+                semantic=SemanticType.Video,
+            ),
         ).uri
 
     @property
@@ -191,32 +206,27 @@ class Run:
 
     @property
     def tags(self) -> list[str]:
-        """Get the tags of the run.
-        """
+        """Get the tags of the run."""
         return self._model.tags
 
     @property
     def dataset(self) -> DatasetInfo:
-        """Get the dataset of the run.
-        """
+        """Get the dataset of the run."""
         return self._model.dataset
 
     @property
     def model(self) -> ModelInfo:
-        """Get the model of the run.
-        """
+        """Get the model of the run."""
         return self._model.model
 
     @property
     def uid(self) -> UUID:
-        """Get the uid of the run. Implicitly commits the run if it's not committed yet.
-        """
+        """Get the uid of the run. Implicitly commits the run if it's not committed yet."""
         if not self._model.uid:
             self.commit()
         return self._model.uid
 
     @property
     def parent_project_uid(self) -> Union[UUID, None]:
-        """Get the parent project uid of the run.
-        """
+        """Get the parent project uid of the run."""
         return self._model.parent_project_uid

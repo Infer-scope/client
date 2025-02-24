@@ -57,7 +57,9 @@ class ColumnInformation(BaseModel):
     group_id: Union[str, None] = None
     show: bool = True
     semantic: Union[SemanticType, None] = None
-    semantic_props: Union[ImageSematicProperties, MetricSemanticProperties, dict, None] = None
+    semantic_props: Union[
+        ImageSematicProperties, MetricSemanticProperties, dict, None
+    ] = None
     join_type: Union[JoinType, None] = None
 
     model_config = ConfigDict(extra="allow")
@@ -78,7 +80,9 @@ class DataFormat(BaseModel):
 
 
 class DataDescription(BaseModel):
-    columns: Union[list[ColumnInformation], None] = None  # Only applicable for Dataframe
+    columns: Union[list[ColumnInformation], None] = (
+        None  # Only applicable for Dataframe
+    )
     data_format: DataFormat
 
     semantic: Union[SemanticType, None] = SemanticType.Dataframe

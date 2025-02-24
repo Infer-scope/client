@@ -10,17 +10,17 @@ from attrs import define, field
 from inferscope.models import ArtifactPack, DataDescription, StoredArtifact, Project
 from inferscope.models.interactive_base import InteractiveBaseModel
 
-BASE_URl = 'https://app.inferscope.tech/api'
+BASE_URl = "https://app.inferscope.tech/api"
 
 
 def _get_token() -> str:
-    if 'INFERSCOPE_TOKEN' in os.environ:
-        return os.environ['INFERSCOPE_TOKEN']
-    token_file_path = os.path.expanduser('~/.inferscope/token')
+    if "INFERSCOPE_TOKEN" in os.environ:
+        return os.environ["INFERSCOPE_TOKEN"]
+    token_file_path = os.path.expanduser("~/.inferscope/token")
     if os.path.exists(token_file_path):
-        with open(token_file_path, 'r') as f:
+        with open(token_file_path, "r") as f:
             return f.read().strip()
-    return ''
+    return ""
 
 
 @define
@@ -59,9 +59,15 @@ class HTTPClient:
 
     _cookies: Dict[str, str] = field(factory=dict, kw_only=True, alias="cookies")
     _headers: Dict[str, str] = field(factory=dict, kw_only=True, alias="headers")
-    _timeout: Union[httpx.Timeout, None] = field(default=None, kw_only=True, alias="timeout")
-    _verify_ssl: Union[str, bool, ssl.SSLContext] = field(default=True, kw_only=True, alias="verify_ssl")
-    _follow_redirects: bool = field(default=False, kw_only=True, alias="follow_redirects")
+    _timeout: Union[httpx.Timeout, None] = field(
+        default=None, kw_only=True, alias="timeout"
+    )
+    _verify_ssl: Union[str, bool, ssl.SSLContext] = field(
+        default=True, kw_only=True, alias="verify_ssl"
+    )
+    _follow_redirects: bool = field(
+        default=False, kw_only=True, alias="follow_redirects"
+    )
     _httpx_args: Dict[str, Any] = field(factory=dict, kw_only=True, alias="httpx_args")
     _client: Union[httpx.Client, None] = field(default=None, init=False)
     _async_client: Union[httpx.AsyncClient, None] = field(default=None, init=False)
@@ -170,7 +176,9 @@ class Client:
     server_url: Union[str, None] = field(kw_only=True, default=None)
     _httpx_client: HTTPClient = field()
 
-    _artifacts_service_clients: dict[UUID, HTTPClient] = field(kw_only=True, factory=dict)
+    _artifacts_service_clients: dict[UUID, HTTPClient] = field(
+        kw_only=True, factory=dict
+    )
 
     @_httpx_client.default
     def _httpx_client_creator(self):
@@ -178,15 +186,20 @@ class Client:
             return HTTPClient(self.token, base_url=self.server_url)
         return HTTPClient(self.token)
 
-    def get_artifact_service_http_client_for_project(self, project_id: UUID) -> HTTPClient:
+    def get_artifact_service_http_client_for_project(
+        self, project_id: UUID
+    ) -> HTTPClient:
         from inferscope.models import ProjectProperties
+
         client = self._artifacts_service_clients.get(project_id)
         if client is not None:
             return client
         httpx_client = self._httpx_client.get_httpx_client()
         project_props_result = httpx_client.get(f"project/{project_id}/properties")
         project_props_result.raise_for_status()
-        project_props = ProjectProperties.model_validate_json(project_props_result.content)
+        project_props = ProjectProperties.model_validate_json(
+            project_props_result.content
+        )
 
         client = HTTPClient(self.token, base_url=project_props.artifact_service_api_url)
         self._artifacts_service_clients[project_id] = client
@@ -196,11 +209,15 @@ class Client:
         httpx_client = self._httpx_client.get_httpx_client()
         from json import loads
 
-        result = httpx_client.post(entity.entity_create_url, json=loads(entity.model_dump_json()))
+        result = httpx_client.post(
+            entity.entity_create_url, json=loads(entity.model_dump_json())
+        )
         result.raise_for_status()
         return type(entity).model_validate_json(result.content)
 
-    def get(self, cls: Type[InteractiveBaseModel], entity_id: Union[str, UUID]) -> InteractiveBaseModel:
+    def get(
+        self, cls: Type[InteractiveBaseModel], entity_id: Union[str, UUID]
+    ) -> InteractiveBaseModel:
         httpx_client = self._httpx_client.get_httpx_client()
         result = httpx_client.get(cls.entity_url(entity_id))
         result.raise_for_status()
@@ -213,7 +230,9 @@ class Client:
     def create_artifact_package(self, parent_project_id: UUID) -> UUID:
         http_client = self._artifact_httpx_for_project(parent_project_id)
         empty_pack = ArtifactPack(owner_project_uid=parent_project_id)
-        result = http_client.post("artifact_pack", json=empty_pack.model_dump(mode="json"))
+        result = http_client.post(
+            "artifact_pack", json=empty_pack.model_dump(mode="json")
+        )
         result.raise_for_status()
         return UUID(result.json())
 
@@ -223,18 +242,23 @@ class Client:
         artifact_pack_id: UUID,
         path: str,
         blob: Union[bytes, str, None] = None,
-        data_description: Union[DataDescription, None] = None
+        data_description: Union[DataDescription, None] = None,
     ) -> StoredArtifact:
         http_client = self._artifact_httpx_for_project(parent_project_id)
         from io import BytesIO
+
         if isinstance(blob, str):
             blob = blob.encode("utf-8")
-        result = http_client.put(f"artifact_pack/{artifact_pack_id}/{path}", data=BytesIO(blob))
+        result = http_client.put(
+            f"artifact_pack/{artifact_pack_id}/{path}", data=BytesIO(blob)
+        )
         result.raise_for_status()
         result = StoredArtifact.model_validate(result.json())
         if data_description is not None:
             result.data_description = data_description
-            patch_result = http_client.patch(f"artifact_pack/{artifact_pack_id}", json=result.model_dump(mode="json"))
+            patch_result = http_client.patch(
+                f"artifact_pack/{artifact_pack_id}", json=result.model_dump(mode="json")
+            )
             patch_result.raise_for_status()
             result = StoredArtifact.model_validate(patch_result.json())
         return result

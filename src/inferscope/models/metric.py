@@ -30,6 +30,4 @@ class Metric(MetricKeyParameters):
 
 class Metrics(BaseModel):
     metrics: Union[list[Metric], None] = None
-    model_config = ConfigDict(
-        ser_json_inf_nan='strings'
-    )
+    model_config = ConfigDict(ser_json_inf_nan="strings")
