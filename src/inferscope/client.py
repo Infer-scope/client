@@ -213,7 +213,7 @@ class Client:
     def create_artifact_package(self, parent_project_id: UUID) -> UUID:
         http_client = self._artifact_httpx_for_project(parent_project_id)
         empty_pack = ArtifactPack(owner_project_uid=parent_project_id)
-        result = http_client.post(f"artifact_pack", json=empty_pack.model_dump(mode="json"))
+        result = http_client.post("artifact_pack", json=empty_pack.model_dump(mode="json"))
         result.raise_for_status()
         return UUID(result.json())
 
@@ -241,6 +241,6 @@ class Client:
 
     def get_default_project(self) -> Project:
         httpx_client = self._httpx_client.get_httpx_client()
-        result = httpx_client.get(f"project/default")
+        result = httpx_client.get("project/default")
         result.raise_for_status()
         return Project.model_validate_json(result.content)
