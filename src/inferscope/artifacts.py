@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Union
 from uuid import UUID
 
-from inferscope import Client, DataDescription
+from inferscope.client import Client
+from inferscope.models.data_description import DataDescription
 from inferscope.models import ArtifactPack, StoredArtifact
 
 
